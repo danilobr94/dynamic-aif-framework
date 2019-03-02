@@ -1,2 +1,3 @@
-# cross-fairensification
-Student project: leave-group-out validation and fairness visualization
+# Laborprojekt: cross-fairensification
+- leave-group-out validation
+- visualization: how can fairness be visualized?
