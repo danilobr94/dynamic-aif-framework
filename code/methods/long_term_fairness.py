@@ -12,10 +12,11 @@ Steps:
 """
 import matplotlib.pyplot as plt
 
+
 class LongTermFairnessPlot:
     """"""
 
-    def __init__(self, sampling_function, clf, fairness_metric, sensitive_attributes, update_clf=False):
+    def __init__(self, sampling_function, clf, fairness_metric, update_clf=False):
         """
 
         :param sampling_function: (function) X, y, y_hat
@@ -29,7 +30,6 @@ class LongTermFairnessPlot:
         self._fairness_metric = fairness_metric
 
         self._update_clf = update_clf
-        self._sensitive_attributes = sensitive_attributes
 
         self._results = []
         self._X = []
@@ -52,18 +52,18 @@ class LongTermFairnessPlot:
 
     def run(self, num_steps):
         """"""
-        X_init, y_init = self._sampling_function(None, None, None)
-        self._clf.fit(X_init, self._sensitive_attributes, y_init)
+        X_init, X_sens_init, y_init = self._sampling_function(None, None, None)
+        self._clf.fit(X_init, X_sens_init, y_init)
 
         for _i in range(num_steps):
             self.run_generation()
 
     def run_generation(self):
         """"""
-        X_t, y_t = self._sampling_function(self._X, self._y, self._y_hat)
-        y_hat_t = self._clf.predict(X_t, self._sensitive_attributes)
+        X_t, X_sens_t, y_t = self._sampling_function(self._X, self._y, self._y_hat)
+        y_hat_t = self._clf.predict(X_t, X_sens_t)
 
-        metric = self._fairness_metric(X_t, self._sensitive_attributes, y_t, y_hat_t)
+        metric = self._fairness_metric(X_t, X_sens_t, y_t, y_hat_t)
 
         self._X.append(X_t)
         self._y.append(y_t)
@@ -76,27 +76,28 @@ class LongTermFairnessPlot:
 
         return metric
 
-    def plot(self):
+    def plot(self, labels=""):
         """"""
         result_arr = np.asarray(self._results)
         num_generations, num_metrics = result_arr.shape
 
         for i in range(num_metrics):
-            plt.plot(range(num_generations), result_arr[:, i], label="metric " + str(i))
+            lbl = "metric " + str(i) if labels == "" else labels[i]
+            plt.plot(range(num_generations), result_arr[:, i], label=lbl)
 
         plt.xlabel("Generation")
         plt.legend()
         plt.show()
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     import numpy as np
     from sklearn.linear_model import LogisticRegression
 
     def metric(x, s, y, y_hat):
         ret = []
 
-        ret.append(1 -(np.sum(y-y_hat)/len(y)))
+        ret.append(1 -(np.sum(abs(y-y_hat))/len(y)))
 
         pos_cls = s == 1
         neg_cls = s == 0
@@ -105,7 +106,12 @@ if __name__=="__main__":
         pos_cls_pos_lbl = pos_cls == pos_lbl
         neg_cls_pos_lbl = neg_cls == pos_lbl
 
-        ret.append(np.sum(pos_cls_pos_lbl) / np.sum(neg_cls_pos_lbl))
+        p = np.sum(pos_cls_pos_lbl)
+        n = np.sum(neg_cls_pos_lbl)
+
+        dsp_im = p/n if (p/n) < 1 else n/p
+
+        ret.append(dsp_im)
 
         return ret
 
@@ -119,15 +125,48 @@ if __name__=="__main__":
         def predict(self, X, _s):
             return self.clf.predict(X)
 
-    def sf(X, y, y_hat):
-        samples = np.random.standard_normal((100, 3))
-        mask = samples[:, 2] > .4
-        samples[:, 2] = 0
-        samples[mask, 2] = 1
-        return samples[:, :2], samples[:, 2]
 
-    sens_attrs = np.random.randint(0, 2, size=100)
+    sens_attrs = np.random.randint(0, 2, size=1000)
 
-    l = LongTermFairnessPlot(sf, df(), metric, sens_attrs, update_clf=False)
+    def sf(X, y, y_hat, num_pos=500, num_neg=500):
+        """Sample points from multivariate gaussian"""
+        mean_1 = [8, 5]
+        cov_1 = [[1.2, 0], [0, 1.3]]
+
+        mean_2 = [0, 1]
+        cov_2 = [[1, 0], [0, 1.2]]
+        pos_samples = np.random.multivariate_normal(mean_1, cov_1, num_pos)
+        neg_samples = np.random.multivariate_normal(mean_2, cov_2, num_neg)
+
+        samples = np.vstack((pos_samples, neg_samples))
+        labels = np.hstack((np.ones(num_pos), np.zeros(num_neg)))
+
+        return samples, sens_attrs, labels
+
+    def sf_hist(X, y, y_hat, num_pos=500, num_neg=500):
+        mean_1 = [8, 5]
+        cov_1 = [[1.2, 0], [0, 1.3]]
+
+        mean_2 = [0, 1]
+        cov_2 = [[1, 0], [0, 1.2]]
+        pos_samples = np.random.multivariate_normal(mean_1, cov_1, num_pos)
+        neg_samples = np.random.multivariate_normal(mean_2, cov_2, num_neg)
+
+        samples = np.vstack((pos_samples, neg_samples))
+        labels = np.hstack((np.ones(num_pos), np.zeros(num_neg)))
+
+        return samples, sens_attrs, labels
+
+    import matplotlib.pyplot as plt
+
+    s, _, l = sf(None, None, None)
+    m1 = l == 1
+    m2 = l == 0
+
+    plt.scatter(s[m1, 0], s[m1, 1])
+    plt.scatter(s[m2, 0], s[m2, 1])
+    plt.show()
+
+    l = LongTermFairnessPlot(sf, df(), metric, update_clf=False)
     l.run(100)
-    l.plot()
+    l.plot(["accuracy", "disparate impact"])
