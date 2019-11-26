@@ -52,11 +52,20 @@ class LongTermFairnessPlot:
 
     def run(self, num_steps):
         """"""
-        X_init, X_sens_init, y_init = self._sampling_function(None, None, None)
-        self._clf.fit(X_init, X_sens_init, y_init)
+        self.init_data()
 
         for _i in range(num_steps):
             self.run_generation()
+
+    def init_data(self):
+        """"""
+        X_init, X_sens_init, y_init = self._sampling_function(None, None, None)
+        self._clf.fit(X_init, X_sens_init, y_init)
+        y_hat_init = self._clf.predict(X_init, X_sens_init)
+
+        self._X.append(X_init)
+        self._y.append(y_init)
+        self._y_hat.append(y_hat_init)
 
     def run_generation(self):
         """"""
@@ -89,10 +98,29 @@ class LongTermFairnessPlot:
         plt.legend()
         plt.show()
 
+    def plot_generation(self):
+        """"""
+        m1 = self._y[-1] == 1
+        m2 = self._y[-1] == 0
+
+        plt.scatter(self._X[-1][m1, 0], self._X[-1][m1, 1], label="positive")
+        plt.scatter(self._X[-1][m2, 0], self._X[-1][m2, 1], label="negative")
+
+        plt.title("Generation " + str(len(self._y_hat)-1))
+
+        txt = "number in positive class:" + str(np.sum(m1)) + \
+              "\nnumber in negative class: " + str(np.sum(m2))
+        plt.text(6, -2, txt)
+
+        plt.legend()
+        plt.show()
+
 
 if __name__ == "__main__":
     import numpy as np
+    import matplotlib.pyplot as plt
     from sklearn.linear_model import LogisticRegression
+    from individual_data_generator_simple import DataGenerator
 
     def metric(x, s, y, y_hat):
         ret = []
@@ -115,7 +143,7 @@ if __name__ == "__main__":
 
         return ret
 
-    class df:
+    class df():
         def __init__(self):
             self.clf = LogisticRegression()
 
@@ -125,48 +153,18 @@ if __name__ == "__main__":
         def predict(self, X, _s):
             return self.clf.predict(X)
 
+        def score(self,  X, s, y):
+            self.clf.score(X, y)
 
-    sens_attrs = np.random.randint(0, 2, size=1000)
+    generator = DataGenerator()
 
-    def sf(X, y, y_hat, num_pos=500, num_neg=500):
-        """Sample points from multivariate gaussian"""
-        mean_1 = [8, 5]
-        cov_1 = [[1.2, 0], [0, 1.3]]
+    l = LongTermFairnessPlot(generator.generate_data, df(), metric, update_clf=False)
 
-        mean_2 = [0, 1]
-        cov_2 = [[1, 0], [0, 1.2]]
-        pos_samples = np.random.multivariate_normal(mean_1, cov_1, num_pos)
-        neg_samples = np.random.multivariate_normal(mean_2, cov_2, num_neg)
+    l.init_data()
+    l.plot_generation()
+    for _ in range(10):
 
-        samples = np.vstack((pos_samples, neg_samples))
-        labels = np.hstack((np.ones(num_pos), np.zeros(num_neg)))
+        l.run_generation()
+        l.plot_generation()
 
-        return samples, sens_attrs, labels
-
-    def sf_hist(X, y, y_hat, num_pos=500, num_neg=500):
-        mean_1 = [8, 5]
-        cov_1 = [[1.2, 0], [0, 1.3]]
-
-        mean_2 = [0, 1]
-        cov_2 = [[1, 0], [0, 1.2]]
-        pos_samples = np.random.multivariate_normal(mean_1, cov_1, num_pos)
-        neg_samples = np.random.multivariate_normal(mean_2, cov_2, num_neg)
-
-        samples = np.vstack((pos_samples, neg_samples))
-        labels = np.hstack((np.ones(num_pos), np.zeros(num_neg)))
-
-        return samples, sens_attrs, labels
-
-    import matplotlib.pyplot as plt
-
-    s, _, l = sf(None, None, None)
-    m1 = l == 1
-    m2 = l == 0
-
-    plt.scatter(s[m1, 0], s[m1, 1])
-    plt.scatter(s[m2, 0], s[m2, 1])
-    plt.show()
-
-    l = LongTermFairnessPlot(sf, df(), metric, update_clf=False)
-    l.run(100)
     l.plot(["accuracy", "disparate impact"])

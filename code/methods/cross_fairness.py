@@ -69,4 +69,3 @@ class CrossFairness:
         print(self._evaluations)
         print("TODO: make plot")
 
-
