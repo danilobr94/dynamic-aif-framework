@@ -47,6 +47,10 @@ class DataGenerator:
             s = self._get_sum(y_hat, i)
             r = np.random.uniform()
 
+            print(r)
+            print(s)
+            print()
+
             if s > r:
                 samples.append(np.random.multivariate_normal(self._mean_pos, self._cov_pos, 1).ravel())
                 labels.append(self._pos_label)
@@ -82,4 +86,4 @@ class DataGenerator:
 
             if len(y_hat) >= t:
                 s += y_hat[-t][i]
-        return s / self._degree
+        return s / len(y_hat)
