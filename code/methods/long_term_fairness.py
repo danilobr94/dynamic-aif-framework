@@ -110,7 +110,7 @@ class LongTermFairnessPlot:
 
         txt = "number in positive class:" + str(np.sum(m1)) + \
               "\nnumber in negative class: " + str(np.sum(m2))
-        plt.text(6, -2, txt)
+        plt.text(0, 0, txt)
 
         plt.legend()
         plt.show()
@@ -156,7 +156,7 @@ if __name__ == "__main__":
         def score(self,  X, s, y):
             self.clf.score(X, y)
 
-    generator = DataGenerator()
+    generator = DataGenerator(mean_1=[1, 1], mean_2=[3, 4])
 
     l = LongTermFairnessPlot(generator.generate_data, df(), metric, update_clf=False)
 
