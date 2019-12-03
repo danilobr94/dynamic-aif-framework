@@ -1,5 +1,5 @@
-from .dataset_mutator import DataMutator
 from .cross_fairness import CrossFairness
+from .long_term_fairness import LongTermFairnessPlot
 
-__all__ = ['DataMutator',
-           'CrossFairness']
+__all__ = ['CrossFairness',
+           'LongTermFairnessPlot']

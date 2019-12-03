@@ -3,13 +3,13 @@
 Steps:
     1. change data set
     2. make predictions on new data set
-    3. evaluate with given metric
+    3. evaluate with given aif360
 
 """
 
 import numpy as np
 from aif360.datasets.structured_dataset import StructuredDataset
-from .dataset_mutator import DataMutator
+from .data.dataset_mutator import DataMutator
 
 
 class CrossFairness:
