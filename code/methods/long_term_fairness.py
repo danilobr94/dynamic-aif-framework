@@ -21,7 +21,7 @@ class LongTermFairnessPlot:
         """
 
         :param sampling_function: (function) X, y, y_hat
-        :param clf: (object) must implement fit(X) and predict(X) functions
+        :param clf: (object) must implement fit(X, X_s, y) and predict(X, X_s, y) functions
         :param fairness_metric: (function) X, s, y, y_hat
         :param update_clf: (bool)
         """
@@ -153,8 +153,37 @@ class LongTermFairnessPlot:
         plt.legend()
         plt.show()
 
+    def _data_generating_decision_boundary(self, X, y, num_points=100):
+        """"""
+        raise NotImplemented
+
+    def _classifier_decision_boundary(self, ax, X, y, num_points=1000,
+                                      label="decision boundary", cmap="Greys"):
+        """TODO: X, y_hat [-1] übergeben und nicht X, y_hat"""
+        x1_min, x1_max = X[-1][:, 0].min() - 3, X[-1][:, 0].max() + 3
+        x2_min, x2_max = X[-1][:, 1].min() - 3, X[-1][:, 1].max() + 3
+
+        x1_step = (x1_max - x1_min) / num_points
+        x2_step = (x2_max - x2_min) / num_points
+
+        xx, yy = np.meshgrid(np.arange(x1_min, x1_max, x1_step),
+                             np.arange(x2_min, x2_max, x2_step))
+
+        mesh = np.c_[xx.ravel(), yy.ravel()]
+        Z = self._clf.predict(mesh, self._X_sensitive, y[-1])
+        Z = Z.reshape(xx.shape)
+
+        CS = ax.contour(xx, yy, Z)
+        CS.collections[0].set_label(label)
+
+        if cmap is not None:
+            ax.contourf(xx, yy, Z, cmap=cmap)
+
     def _plot_data(self, ax, X, y_hat, title="", print_stats=False):
-        """Plot points of last generation"""
+        """Plot points of last generation
+        TODO: X, y_hat [-1] übergeben und nicht X, y_hat
+        """
+        # self._classifier_decision_boundary(ax, X, y_hat)
 
         pos_lbl_mask = y_hat[-1] == self._pos_label
         neg_lbl_mask = y_hat[-1] == self._neg_label

@@ -24,9 +24,9 @@ class DataGenerator(DataBaseClass):
 
         samples = []
         labels = []
-        print()
+
         for i, _ in enumerate(X[-1]):
-            s = self._get_probability(y_hat, i) + self._OFFSET
+            s = self._get_probability(y_hat, i)  # + self._OFFSET
             r = np.random.uniform()
 
             if s > r:
@@ -45,8 +45,6 @@ class DataGenerator(DataBaseClass):
         """"""
         s = 0
         for t in range(1, self._degree + 1):
-
             if len(y_hat) >= t:
                 s += y_hat[-t][i]
-        print(s)
-        return s / len(y_hat)
+        return s / np.amin((len(y_hat), self._degree))

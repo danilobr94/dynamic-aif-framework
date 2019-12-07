@@ -48,4 +48,4 @@ class DataGenerator(DataBaseClass):
 
             if len(y_hat) >= t:
                 s += np.sum(y_hat[-t]) / len(y_hat[-t])
-        return s / len(y_hat)
+        return s / np.amin((len(y_hat), self._degree))

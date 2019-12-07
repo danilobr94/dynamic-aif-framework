@@ -26,7 +26,7 @@ class DataGenerator(DataBaseClass):
         labels = []
 
         for i, _ in enumerate(X[-1]):
-            s = self._get_probability(y_hat, i) + self._OFFSET
+            s = self._get_probability(y_hat, i) #+ self._OFFSET
             r = np.random.uniform()
 
             if s > r:
@@ -57,4 +57,4 @@ class DataGenerator(DataBaseClass):
             if len(y_hat) >= t:
                 s += np.sum(y_hat[-t][group_mask]) / len(y_hat[-t])
 
-        return s / len(y_hat)
+        return s / np.amin((len(y_hat), self._degree))
