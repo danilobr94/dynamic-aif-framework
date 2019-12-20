@@ -1,4 +1,4 @@
-"""Base class for all data generators"""
+"""Base class for all ltf_data generators"""
 
 from abc import ABC, abstractmethod
 import numpy as np
@@ -35,7 +35,7 @@ class DataBaseClass(ABC):
         neg_cls_neg_lbl_samples = np.ones(num_neg_class_neg_lbl) * neg_class
 
         # the top num_positive_label items belong all have a positive label
-        # (the data is not shuffled)
+        # (the ltf_data is not shuffled)
         self._sens_attrs = np.hstack((pos_cls_pos_lbl_samples,
                                       neg_cls_pos_lbl_samples,
                                       pos_cls_neg_lbl_samples,

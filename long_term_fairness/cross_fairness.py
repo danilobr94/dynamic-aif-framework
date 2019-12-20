@@ -1,15 +1,15 @@
 """Estimate effect of random changes to fairness
 
 Steps:
-    1. change data set
-    2. make predictions on new data set
-    3. evaluate with given aif360
+    1. change ltf_data set
+    2. make predictions on new ltf_data set
+    3. evaluate with given ltf_aif
 
 """
 
 import numpy as np
 from aif360.datasets.structured_dataset import StructuredDataset
-from .data.dataset_mutator import DataMutator
+from .ltf_data.dataset_mutator import DataMutator
 
 
 class CrossFairness:
@@ -39,14 +39,14 @@ class CrossFairness:
         self._make_evaluations(dataset_new, "randomized feature " + str(feature))
 
     def remove_feature(self, feature):
-        """Remove feature from data set and check outcome"""
+        """Remove feature from ltf_data set and check outcome"""
         dataset_new = self.dataset.copy(deepcopy=True)
         dataset_new.features = np.delete(self.dataset.features, feature, 1)
 
         self._make_evaluations(dataset_new, "removed feature " + str(feature))
 
     def remove_group(self, feature, group):
-        """Remove all individuals from group in feature from data set"""
+        """Remove all individuals from group in feature from ltf_data set"""
         dataset_new = self.dataset.copy(deepcopy=True)
         mask = dataset_new.features[feature] == group
         dataset_new.features = np.delete(dataset_new.features, mask, 0)

@@ -1,4 +1,4 @@
-"""Random changes to data set"""
+"""Random changes to ltf_data set"""
 
 from aif360.datasets.structured_dataset import StructuredDataset
 import numpy as np
