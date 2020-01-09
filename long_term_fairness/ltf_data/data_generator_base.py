@@ -68,5 +68,5 @@ class DataBaseClass(ABC):
         return samples, self._sens_attrs, labels
 
     @abstractmethod
-    def generate_data(self, X, _y, y_hat):
+    def sample(self, X, _y, y_hat):
         pass

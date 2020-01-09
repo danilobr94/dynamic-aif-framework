@@ -20,7 +20,7 @@ class DataGenerator(DataBaseClass):
         self._local_variance = local_variance
         self._step_size = step_size
 
-    def generate_data(self, X, _y, y_hat):
+    def sample(self, X, _y, y_hat):
         """
 
         Args:
@@ -36,33 +36,34 @@ class DataGenerator(DataBaseClass):
             return self._generate_initial_data()
 
         new_X = []
-        labels = []
         for i, x_i in enumerate(X[-1]):
             y_hat_i = [y_hat[t][i] for t in range(len(y_hat))]
             new_x_i = self._sample_point(x_i, y_hat_i)
             new_X.append(new_x_i)
-            labels.append(self._get_label(new_x_i))
 
         samples = np.asarray(new_X)
-        labels = np.asarray(labels)
+        labels = self._get_label(samples)
 
         return samples, self._sens_attrs, labels
 
-    def _get_label(self, x_i):
+    def _get_label(self, X, _y_i=None):
         """
 
         Args:
-             x_i: vector, the current features of individual i
+             X: 2D, the current features
 
         Returns:
 
         """
-        distance_pos_mean = np.linalg.norm((x_i - self._mean_pos))
-        distance_neg_mean = np.linalg.norm((x_i - self._mean_neg))
+        distance_pos_mean = np.linalg.norm((X - self._mean_pos), axis=1)
+        distance_neg_mean = np.linalg.norm((X - self._mean_neg), axis=1)
 
-        if distance_pos_mean < distance_neg_mean:
-            return self._pos_label
-        return self._neg_label
+        labels = distance_pos_mean < distance_neg_mean
+
+        int_labels = np.ones_like(labels) * self._neg_label
+        int_labels[labels] = self._pos_label
+
+        return int_labels
 
     def _sample_point(self, x_i, y_hat_i):
         """

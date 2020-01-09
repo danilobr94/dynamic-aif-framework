@@ -7,7 +7,7 @@ from .data_generator_base import DataBaseClass
 class DataGenerator(DataBaseClass):
     """"""
 
-    def generate_data(self, X, _y, y_hat):
+    def sample(self, X, _y, y_hat):
         """
 
         Args:
