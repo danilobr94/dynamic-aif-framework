@@ -58,8 +58,8 @@ class AifLongTermPrediction(AifLongTermBase):
         dataset = self._to_aif_data_frame(X, X_sens, y)
         self._clf.fit(dataset)
 
-    def predict(self, X, X_sens, y):
+    def predict(self, X, X_sens):
         """"""
-        dataset = self._to_aif_data_frame(X, X_sens, y)
+        dataset = self._to_aif_data_frame(X, X_sens, None)
         predicted_dataset = self._clf.predict(dataset)
         return predicted_dataset.labels.ravel()

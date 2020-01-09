@@ -18,19 +18,22 @@ class AifLongTermBase(ABC):
         self.protected_attribute_name = "protected"
         self.feature_col_names = "feature_"
 
-    def _to_aif_data_frame(self, X, x_sense, y):
+    def _to_aif_data_frame(self, X, x_sense, y=None):
         """
 
         Args:
-            X: the unprotected features
+            X: 2D, the unprotected features
             x_sense: the protected attribute
-            y: the labels
+            y: the labels, if None all labels are set to 0
 
         Returns:
             AIF360.BinaryLabelDataset
         """
 
         feature_cols = [self.feature_col_names + str(s) for s in range(np.shape(X)[1])]
+
+        if y is None:
+            y = np.zeros(np.shape(X)[0])
 
         columns = np.concatenate((feature_cols, (self.protected_attribute_name, self.label_name)))
         d = np.column_stack((X, x_sense, y))
