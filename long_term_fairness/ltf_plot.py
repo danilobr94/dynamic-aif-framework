@@ -8,6 +8,9 @@ Steps:
 
     TODO: pass initial ltf_data set?
 """
+
+
+import warnings
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -15,15 +18,15 @@ import numpy as np
 class LongTermFairnessPlot:
     """"""
 
-    def __init__(self, sampling_function, clf, fairness_metric, update_clf=False, x_lim=None, y_lim=None):
+    def __init__(self, data_generator, clf, fairness_metric, update_clf=False, x_lim=None, y_lim=None):
         """
 
-        :param sampling_function: (function) X, y, y_hat
-        :param clf: (object) must implement fit(X, X_s, y) and predict(X, X_s, y) functions
-        :param fairness_metric: (function) X, s, y, y_hat
+        :param data_generator: (object) must implement sample(X, y, y_hat) and get_label(X) functions
+        :param clf: (object) must implement fit(X, X_s, y) and predict(X, X_s) functions
+        :param fairness_metric: (function) X, X_s, y, y_hat
         :param update_clf: (bool)
         """
-        self._sampling_function = sampling_function
+        self._data_generator = data_generator
         self._clf = clf
         self._fairness_metric = fairness_metric
 
@@ -74,14 +77,14 @@ class LongTermFairnessPlot:
 
     def init_data(self):
         """"""
-        X_init, X_sens_init, y_init = self._sampling_function(None, None, None)
+        X_init, X_sens_init, y_init = self._data_generator.sample(None, None, None)
         self._X_sensitive = X_sens_init
 
         self._X.append(X_init)
         self._y.append(y_init)
 
         self._fit_clf()
-        y_hat_init = self._clf.predict(X_init, X_sens_init, y_init)
+        y_hat_init = self._clf.predict(X_init, X_sens_init)
 
         self._y_hat.append(y_hat_init)
 
@@ -91,11 +94,11 @@ class LongTermFairnessPlot:
 
     def run_generation(self):
         """"""
-        X_t, X_sens_t, y_t = self._sampling_function(self._X,
-                                                     self._y,
-                                                     self._y_hat)
+        X_t, X_sens_t, y_t = self._data_generator.sample(self._X,
+                                                         self._y,
+                                                         self._y_hat)
 
-        y_hat_t = self._clf.predict(X_t, X_sens_t, y_t)
+        y_hat_t = self._clf.predict(X_t, X_sens_t)
 
         metric = self._fairness_metric(X_t, X_sens_t, y_t, y_hat_t)
 
@@ -117,11 +120,11 @@ class LongTermFairnessPlot:
         """
         y_hat_pos = np.ones(np.shape(self._y_hat_baseline)) * self._pos_label
 
-        X_t_base, X_sens_t_base, y_t_base = self._sampling_function(self._X_baseline,
-                                                                    self._y_baseline,
-                                                                    y_hat_pos)
+        X_t_base, X_sens_t_base, y_t_base = self._data_generator.sample(self._X_baseline,
+                                                                        self._y_baseline,
+                                                                        y_hat_pos)
 
-        y_hat_t_base = self._clf.predict(X_t_base, X_sens_t_base, y_t_base)
+        y_hat_t_base = self._clf.predict(X_t_base, X_sens_t_base)
 
         metric = self._fairness_metric(X_t_base, X_sens_t_base, y_t_base, y_hat_t_base)
 
@@ -134,7 +137,7 @@ class LongTermFairnessPlot:
         return metric
 
     def plot(self, labels=""):
-        """"""
+        """Plots the results over all generations"""
         result_arr = np.asarray(self._results)
         baseline_result_arr = np.asarray(self._baseline_results)
         num_generations, num_metrics = result_arr.shape
@@ -151,15 +154,11 @@ class LongTermFairnessPlot:
         plt.legend()
         plt.show()
 
-    def _data_generating_decision_boundary(self, X, y, num_points=100):
-        """"""
-        raise NotImplemented
+    def _data_generating_decision_boundary(self, ax, X, num_points=200, cmap="Pastel1"):
+        """Plot the data generating decision boundary if the sampling function provides a method to get labels."""
 
-    def _classifier_decision_boundary(self, ax, X, y, num_points=1000,
-                                      label="decision boundary", cmap="Greys"):
-        """TODO: X, y_hat [-1] übergeben und nicht X, y_hat"""
-        x1_min, x1_max = X[-1][:, 0].min() - 3, X[-1][:, 0].max() + 3
-        x2_min, x2_max = X[-1][:, 1].min() - 3, X[-1][:, 1].max() + 3
+        x1_min, x1_max = X[:, 0].min() - 3, X[:, 0].max() + 3
+        x2_min, x2_max = X[:, 1].min() - 3, X[:, 1].max() + 3
 
         x1_step = (x1_max - x1_min) / num_points
         x2_step = (x2_max - x2_min) / num_points
@@ -168,18 +167,68 @@ class LongTermFairnessPlot:
                              np.arange(x2_min, x2_max, x2_step))
 
         mesh = np.c_[xx.ravel(), yy.ravel()]
-        Z = self._clf.predict(mesh, self._X_sensitive, y[-1])
+
+        # TODO: generate protected attribute in plausible way
+        X_sens_dummy = np.zeros(np.shape(mesh)[0])
+
+        try:
+            label_function = self._data_generator._get_label
+
+        except AttributeError:
+            print("failed")
+
+        else:
+            Z = label_function(mesh, X_sens_dummy)
+            Z = Z.reshape(xx.shape)
+
+            ax.contourf(xx, yy, Z, cmap=cmap)
+
+    def _classifier_decision_boundary(self, ax, X, num_points=200, label="decision boundary"):
+        """
+
+        Args:
+            ax:
+            X: 2D, features at one time step t
+            num_points:
+            label:
+
+        Returns:
+
+        """
+        x1_min, x1_max = X[:, 0].min() - 3, X[:, 0].max() + 3
+        x2_min, x2_max = X[:, 1].min() - 3, X[:, 1].max() + 3
+
+        x1_step = (x1_max - x1_min) / num_points
+        x2_step = (x2_max - x2_min) / num_points
+
+        xx, yy = np.meshgrid(np.arange(x1_min, x1_max, x1_step),
+                             np.arange(x2_min, x2_max, x2_step))
+
+        mesh = np.c_[xx.ravel(), yy.ravel()]
+
+        # TODO: generate protected attribute in plausible way
+        X_sens_dummy = np.zeros(np.shape(mesh)[0])
+
+        Z = self._clf.predict(mesh, X_sens_dummy)
         Z = Z.reshape(xx.shape)
 
         CS = ax.contour(xx, yy, Z)
         CS.collections[0].set_label(label)
 
-        if cmap is not None:
-            ax.contourf(xx, yy, Z, cmap=cmap)
-
     def _plot_data(self, ax, X, y_hat, title="", print_stats=False):
-        """Plot points of last generation
-        TODO: X, y_hat [-1] übergeben und nicht X, y_hat
+        """
+
+        Args:
+            ax:
+            X:
+            y_hat:
+            title:
+            print_stats:
+
+        Returns:
+
+        TODO: pass X[-1] insetad of X
+
         """
         # self._classifier_decision_boundary(ax, X, y_hat)
 
@@ -235,17 +284,25 @@ class LongTermFairnessPlot:
             ax.set_ylim(self._y_lim)
 
         ax.set_title(title + "\n" + txt)
-        ax.legend()
 
     def plot_generation(self):
         """Plot ltf_data points of generation"""
 
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
 
+        self._classifier_decision_boundary(ax1, self._X[-1])
+        self._classifier_decision_boundary(ax2, self._X_baseline[-1])
+
+        self._data_generating_decision_boundary(ax1, self._X[-1])
+        self._data_generating_decision_boundary(ax2, self._X_baseline[-1])
+
         self._plot_data(ax1, self._X, self._y_hat, "true ltf_data")
         self._plot_data(ax2, self._X_baseline, self._y_hat_baseline, "baseline ltf_data")
 
         fig.suptitle("Generation " + str(len(self._y_hat)-1))
+
+        ax1.legend()
+        ax2.legend()
 
         plt.show()
 
