@@ -9,7 +9,7 @@ Steps:
 
 import numpy as np
 from aif360.datasets.structured_dataset import StructuredDataset
-from .ltf_data.dataset_mutator import DataMutator
+from .dataset_mutator import DataMutator
 
 
 class CrossFairness:
