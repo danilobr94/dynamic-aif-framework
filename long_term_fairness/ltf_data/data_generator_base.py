@@ -67,6 +67,25 @@ class DataBaseClass(ABC):
 
         return samples, self._sens_attrs, labels
 
+    def get_label(self, X, _X_sens=None):
+        """
+
+        Args:
+             X: 2D, the current features
+
+        Returns:
+
+        """
+        distance_pos_mean = np.linalg.norm((X - self._mean_pos), axis=1)
+        distance_neg_mean = np.linalg.norm((X - self._mean_neg), axis=1)
+
+        labels = distance_pos_mean < distance_neg_mean
+
+        int_labels = np.ones_like(labels) * self._neg_label
+        int_labels[labels] = self._pos_label
+
+        return int_labels
+
     @abstractmethod
     def sample(self, X, _y, y_hat):
         pass
