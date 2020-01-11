@@ -42,28 +42,9 @@ class DataGenerator(DataBaseClass):
             new_X.append(new_x_i)
 
         samples = np.asarray(new_X)
-        labels = self._get_label(samples)
+        labels = self.get_label(samples)
 
         return samples, self._sens_attrs, labels
-
-    def _get_label(self, X, _y_i=None):
-        """
-
-        Args:
-             X: 2D, the current features
-
-        Returns:
-
-        """
-        distance_pos_mean = np.linalg.norm((X - self._mean_pos), axis=1)
-        distance_neg_mean = np.linalg.norm((X - self._mean_neg), axis=1)
-
-        labels = distance_pos_mean < distance_neg_mean
-
-        int_labels = np.ones_like(labels) * self._neg_label
-        int_labels[labels] = self._pos_label
-
-        return int_labels
 
     def _sample_point(self, x_i, y_hat_i):
         """
@@ -87,10 +68,12 @@ class DataGenerator(DataBaseClass):
     def _mean_function(self, x_i, y_hat_i):
         """x + sum(y_hat * alpha * v)"""
         s = 0
+
         for t in range(1, self._degree + 1):
             if len(y_hat_i) >= t:
-                s += self._step_size * self._direction_vector(x_i, y_hat_i[-t])
+                s += y_hat_i[-t]  # self._step_size * self._direction_vector(x_i, y_hat_i[-t])
 
+        s = self._step_size * self._direction_vector(x_i, y_hat_i[-1]) * s
         return x_i + s
 
     def _direction_vector(self, x_i, y_hat_i_t):
