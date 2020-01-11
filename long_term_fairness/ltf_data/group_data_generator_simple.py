@@ -26,7 +26,7 @@ class DataGenerator(DataBaseClass):
         labels = []
 
         for i, _ in enumerate(X[-1]):
-            s = self._get_probability(y_hat, i) #+ self._OFFSET
+            s = self._get_probability(y_hat, i)  # + self._OFFSET
             r = np.random.uniform()
 
             if s > r:
