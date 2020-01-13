@@ -207,6 +207,7 @@ class LongTermFairnessPlot:
         num_repetitions = np.shape(self._X)[0]
         X_s = np.repeat(self._X_sensitive, num_repetitions)
 
+        print("updated clf")
         self._clf.fit(X, X_s, y)
 
 

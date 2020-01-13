@@ -4,7 +4,7 @@ import numpy as np
 from .data_generator_base import DataBaseClass
 
 
-class DataGenerator(DataBaseClass):
+class NaiveGroupDataGenerator(DataBaseClass):
     """"""
 
     def sample(self, X, _y, y_hat):
@@ -25,7 +25,7 @@ class DataGenerator(DataBaseClass):
         samples = []
         labels = []
 
-        for i, _ in enumerate(X[-1]):
+        for i, _x in enumerate(X[-1]):
             s = self._get_probability(y_hat, i)  # + self._OFFSET
             r = np.random.uniform()
 
@@ -42,11 +42,14 @@ class DataGenerator(DataBaseClass):
         return samples, self._sens_attrs, labels
 
     def _get_probability(self, y_hat, i):
-        """ Get sum of predictions for group of individual i.
+        """Get sum of predictions for group of individual i.
 
-        :param y_hat:
-        :param i: the i-th individual
-        :return:
+        Args:
+            y_hat:
+            i:
+
+        Returns:
+
         """
 
         s = 0
@@ -55,6 +58,6 @@ class DataGenerator(DataBaseClass):
         for t in range(1, self._degree + 1):
 
             if len(y_hat) >= t:
-                s += np.sum(y_hat[-t][group_mask]) / len(y_hat[-t])
+                s += np.sum(y_hat[-t][group_mask]) / np.sum(group_mask)
 
         return s / np.amin((len(y_hat), self._degree))

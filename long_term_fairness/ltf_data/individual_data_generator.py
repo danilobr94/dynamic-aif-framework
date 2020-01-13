@@ -1,6 +1,6 @@
 """
 
-TODO: stop when individuals crossed decision boundary (aka add negative momentum or similar)
+TODO: stop when individuals crossed decision boundary (add negative momentum or similar)
 """
 import numpy as np
 from .data_generator_base import DataBaseClass
