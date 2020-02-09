@@ -1,16 +1,17 @@
+""""""
 from aif360.metrics import ClassificationMetric
 from .longterm_aif_base import AifLongTermBase
 
 
 class AifLongTermMetric(AifLongTermBase):
-    """Use AIF360 metrics to for LongTerm framework."""
+    """Wrapper class to use aif360 metrics for LongTerm framework."""
 
     def __init__(self, metrics=["accuracy", "disparate_impact"],
                  pos_class=1, neg_class=0, pos_label=1, neg_label=0):
         """
 
         Args:
-            metrics (list(str)): name of AIF360.ClassificationMetric class function
+            metrics (list(str)): name of aif360.ClassificationMetric functions
             pos_class:
             neg_class:
             pos_label:
@@ -20,10 +21,20 @@ class AifLongTermMetric(AifLongTermBase):
         super().__init__(pos_class=pos_class, neg_class=neg_class,
                          pos_label=pos_label, neg_label=neg_label)
 
-    def metric(self, X, X_sens, y, y_hat):
-        """"""
-        dataset = self._to_aif_data_frame(X, X_sens, y)
-        classified_dataset = self._to_aif_data_frame(X, X_sens, y_hat)
+    def metric(self, X_t, X_sens_t, y_t, y_hat_t):
+        """
+        
+        Args:
+            X_t: 
+            X_sens_t: 
+            y_t: 
+            y_hat_t: 
+
+        Returns:
+
+        """
+        dataset = self._to_aif_data_frame(X_t, X_sens_t, y_t)
+        classified_dataset = self._to_aif_data_frame(X_t, X_sens_t, y_hat_t)
 
         unprivileged = {self.protected_attribute_name: self._neg_class}
         privileged = {self.protected_attribute_name: self._pos_class}
@@ -45,10 +56,18 @@ class AifLongTermMetric(AifLongTermBase):
 
 
 class AifLongTermPrediction(AifLongTermBase):
-    """Use AIF360 predictors for LongTerm framework."""
+    """Wrapper class to  use aif360 predictors for LongTerm framework."""
 
     def __init__(self, clf, pos_class=1, neg_class=0, pos_label=1, neg_label=0):
-        """"""
+        """
+
+        Args:
+            clf (): classifier ...
+            pos_class:
+            neg_class:
+            pos_label:
+            neg_label:
+        """
         self._clf = clf
         super().__init__(pos_class=pos_class, neg_class=neg_class,
                          pos_label=pos_label, neg_label=neg_label)

@@ -1,4 +1,4 @@
-"""Generate Data"""
+"""Generate Data where individuals jump between groups."""
 
 import numpy as np
 from .data_generator_base import DataBaseClass

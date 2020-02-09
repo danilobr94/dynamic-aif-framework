@@ -1,4 +1,4 @@
-"""
+"""Generate data where positive prediction only affect individual.
 
 TODO: stop when individuals crossed decision boundary (add negative momentum or similar)
 """
