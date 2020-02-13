@@ -46,7 +46,7 @@ class GroupDataGenerator(DataBaseClass):
 
             y_hat_g = [y_hat[t][group_mask] for t in range(len(y_hat))]
 
-            new_x_i = self._sample_point(x_i, y_hat_g, y_hat[-1][i])
+            new_x_i = self._sample_point(x_i, y_hat_g)
             new_X.append(new_x_i)
 
         samples = np.asarray(new_X)
@@ -54,7 +54,7 @@ class GroupDataGenerator(DataBaseClass):
 
         return samples, self._sens_attrs, labels
 
-    def _sample_point(self, x_i, y_hat_g, y_hat_i_t):
+    def _sample_point(self, x_i, y_hat_g):
         """
 
         Args:
@@ -66,7 +66,7 @@ class GroupDataGenerator(DataBaseClass):
 
         """
         cov = self._cov_function()
-        mean = self._mean_function(x_i, y_hat_g, y_hat_i_t)
+        mean = self._mean_function(x_i, y_hat_g)
         new_point = np.random.multivariate_normal(mean, cov, 1)
         return new_point.ravel()
 
@@ -74,7 +74,7 @@ class GroupDataGenerator(DataBaseClass):
         """"""
         return self._local_variance
 
-    def _mean_function(self, x_i, y_hat_g, y_hat_i_t):
+    def _mean_function(self, x_i, y_hat_g):
         """x + sum(y_hat * alpha * v)"""
         s = 0
 
@@ -82,20 +82,20 @@ class GroupDataGenerator(DataBaseClass):
             if len(y_hat_g) >= t:
                 s += np.sum(y_hat_g[-t]) / len(y_hat_g[-t])
 
-        s = self._step_size * self._direction_vector(x_i, y_hat_i_t) * s
+        s = self._step_size * self._direction_vector(x_i, s) * s
         return x_i + s
 
-    def _direction_vector(self, x_i, y_hat_i_t):
+    def _direction_vector(self, x_i, s):
         """
 
         Args:
             x_i: vector,  the features of individual i
-            y_hat_i_t: scalar, the value of y_hat for individual i at time step t
+            s: scalar, sum of predictions
 
         Returns:
 
         """
-        if y_hat_i_t:
+        if s > 0:
             return self._mean_pos - x_i
         else:
             return self._mean_neg - x_i
