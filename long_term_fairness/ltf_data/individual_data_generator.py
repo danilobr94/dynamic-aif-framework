@@ -6,7 +6,7 @@ import numpy as np
 from .data_generator_base import DataBaseClass
 
 
-class DataGenerator(DataBaseClass):
+class IndividualDataGenerator(DataBaseClass):
     """"""
 
     def __init__(self, mean_pos=[10, 7], cov_pos=[[1.2, 0], [0, 1.3]],
