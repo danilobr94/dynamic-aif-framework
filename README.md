@@ -13,7 +13,7 @@ The backbone of the framework is a loop that repeatedly samples data ```X_t, y_t
 After the last iteration, the computed metrics are plotted through time.
 
 A short example is given below. Detailed [examples](https://github.com/danilobr94/dynamic-aif-framework/tree/master/examples) 
-are available as jupyter-notebooks. The source code is located in the folder [code](https://github.com/danilobr94/dynamic-aif-framework/tree/master/code).
+are available as jupyter-notebooks. The source code is located in the folder [code](https://github.com/danilobr94/dynamic-aif-framework/tree/master/ltf).
 The final report is available [here](https://github.com/danilobr94/dynamic-aif-framework/blob/master/examples/report.pdf). 
 
 ## Dynamics
