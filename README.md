@@ -28,7 +28,7 @@ Details about the dynamics and implementation can be found in the report.
 ## Notes
 This is a simple environment that was used to investigate some baseline for another project currently in progress.
 It is similar to [ml-fairness-gym](https://github.com/google/ml-fairness-gym) with the main difference being
-that ml-fairness-gym is built for re-enforcement agents and this framework for classification.
+that ml-fairness-gym is built for reinforcement agents and this framework for classification.
 
 # Short Summary
 - Two sequential data generators provide sequential data.
